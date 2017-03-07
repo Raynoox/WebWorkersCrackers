@@ -1,11 +1,11 @@
 package service
 import (
-  "server/dao"
+  "WebWorkersCrackers/dao"
   "gopkg.in/mgo.v2"
   "gopkg.in/mgo.v2/bson"
   "fmt"
   "time"
-  "server/model"
+  "WebWorkersCrackers/model"
 )
 
 //GetHashToCrack gets next iteration for hash to crack

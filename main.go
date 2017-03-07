@@ -8,9 +8,9 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
-	"server/dao"
-	"server/model"
-	"server/service"
+	"WebWorkersCrackers/dao"
+	"WebWorkersCrackers/model"
+	"WebWorkersCrackers/service"
 )
 
 func main() {
