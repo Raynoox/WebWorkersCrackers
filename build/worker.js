@@ -3,12 +3,12 @@
   importScripts('/build/md5-min.js');
   importScripts('/build/sha1-min.js');
 s.addEventListener('message', function(e) {
-  debugger;
   var options = {
     hashSearch: e.data.Hash,
     iteration: e.data.StartHash,
     numberOfOperations: e.data.Iterations,
-    algorithm: e.data.Algorithm
+    algorithm: e.data.Algorithm,
+    workerIndex: e.data.index
   }
   var alphabeth = "abcdefghijklmnopqrstuvwxyz";
   var salt = "";
@@ -75,7 +75,8 @@ s.addEventListener('message', function(e) {
       s.postMessage({
         finished: {
           result: true,
-          passphrase: passphrase
+          passphrase: passphrase,
+          workerIndex: options.workerIndex
         }
       });
       break;
@@ -88,7 +89,8 @@ s.addEventListener('message', function(e) {
   s.postMessage({
     finished: {
       result: true,
-      noi: options.numberOfOperations
+      noi: options.numberOfOperations,
+      workerIndex: options.workerIndex
     }
   });
 })

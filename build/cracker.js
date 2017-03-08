@@ -9,8 +9,10 @@ var crackHash = function(data, window, document, component) {
       console.log("msg");
       if(e.data.finished.result) {
         console.log('FINISHED');
+        workers[e.data.finished.workerIndex].finished = true;
         if(e.data.finished.passphrase !== undefined) {
           component.setState({
+            result: true,
             crackResult: {
               result: true,
               passphrase: e.data.finished.passphrase,
@@ -21,6 +23,7 @@ var crackHash = function(data, window, document, component) {
         } else {
           if(checkIfDidntFind(workers)) {
             component.setState({
+              result: true,
               crackResult: {
                 result: true,
                 passphrase: null,
@@ -44,7 +47,8 @@ var crackHash = function(data, window, document, component) {
       Hash: data.Hash,
       StartHash: splittedData[i].StartHash,
       Iterations: splittedData[i].Iterations,
-      Algorithm: data.Algorithm
+      Algorithm: data.Algorithm,
+      index: i
     });
     workers.push({
       worker: worker,
@@ -71,7 +75,7 @@ var checkIfDidntFind = function(workers) {
   var i;
   for (i = 0;i<workers.length;i++) {
     if(workers[i].finished === false) {
-      return true;
+      return false;
     }
   }
   return true;

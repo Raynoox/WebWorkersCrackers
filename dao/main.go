@@ -117,23 +117,32 @@ func UpdateHash(change mgo.Change, foundHash model.HashInfo) {
     panic(err)
   }
 }
-
+//DeleteHashTable delets calculation entry in db
 func DeleteHashTable(hash string, iterationStart int) {
+  fmt.Printf("delete hashTable hash %s iteration%d\n",hash, iterationStart)
+
   session := connect()
   defer session.Close()
   hashTable := session.DB("rest").C("hashTable")
-  _, err := hashTable.RemoveAll(bson.M{"hash": hash, "iterationstart": iterationStart})
+  var info *mgo.ChangeInfo
+  var ha []model.HashTable
+  err2 := hashTable.Find(bson.M{"hash": hash, "iterationstarted": iterationStart}).All(&ha)
+  info, err := hashTable.RemoveAll(bson.M{"hash": hash, "iterationstarted": iterationStart})
+  fmt.Println(info.Removed)
+  fmt.Println(len(ha))
   if err != nil {
     panic(err)
+    panic(err2)
   }
 }
-
+//CompleteHash sets decoded hash and finished so it will stop calculating
 func CompleteHash(hash string, decoded string) {
-  session := connect()
-  defer session.Close()
-  hashes := session.DB("rest").C("hashes")
-  err := hashes.Find(bson.M{})
-  if err != nil {
-    panic(err)
+  foundHash := GetSingleHash(hash)
+  if len(foundHash.Hash) > 0 {
+    change := mgo.Change{
+      Update:    bson.M{"hash": foundHash.Hash, "decoded": decoded, "Isfinished": true},
+      ReturnNew: true,
+    }
+    UpdateHash(change, foundHash)
   }
 }
