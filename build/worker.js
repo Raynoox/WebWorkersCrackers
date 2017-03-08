@@ -87,8 +87,7 @@ s.addEventListener('message', function(e) {
   }
   s.postMessage({
     finished: {
-      result: false,
-      passphrase: passphrase,
+      result: true,
       noi: options.numberOfOperations
     }
   });
