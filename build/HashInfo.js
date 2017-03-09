@@ -3,6 +3,7 @@ var HashInfo = React.createClass({displayName: "HashInfo",
     id: React.PropTypes.string.isRequired,
     hash: React.PropTypes.string.isRequired
   },
+  canStop: true,
   getInitialState: function() {
     return {
       crackResult: {
@@ -13,12 +14,15 @@ var HashInfo = React.createClass({displayName: "HashInfo",
     };
   },
   componentWillUpdate: function () {
-    if(this.state.crackResult.result) {
+    if(this.canStop && this.state.result) {
       this.stopCracking();
-      this.startCracking();
     }
   },
   startCracking: function() {
+    this.canStop = true;
+    this.setState({
+      result: false
+    });
     sendRequestJson("post","/crack/",{ID: this.props.id, Hash: this.props.hash},this.successStartCallback)
   },
   startWorker(i, data) {
@@ -54,8 +58,20 @@ var HashInfo = React.createClass({displayName: "HashInfo",
     });
   },
   stopCracking: function() {
-    var sucCallback = this.state.crackResult.passphrase === null ? null : this.startCracking;
-    sendRequestJson("post","/finished/", this.state.crackResult, sucCallback)
+    this.canStop = false;
+    this.setState({
+      result: false
+    });
+    var sucCallback = this.state.crackResult.passphrase === null ? this.startCracking : null;
+    sendRequestJson("post","/finish/",
+    {
+      Result: this.state.crackResult.passphrase,
+      IsSuccess: this.state.crackResult.passphrase !== null,
+      IterationStart: this.state.startInfo.StartHash,
+      Iterations: this.state.startInfo.Iterations,
+      Algorithm: this.state.startInfo.Algorithm,
+      Hash: this.props.hash
+    }, sucCallback)
   },
   render: function () {
     return (
