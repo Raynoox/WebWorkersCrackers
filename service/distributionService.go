@@ -32,7 +32,7 @@ func GetHashToCrack(hash string) int {
   fmt.Printf("Im gonna return - %d\n", foundHash.NextIteration)
   if len(foundHash.Hash) > 0 {
     change := mgo.Change{
-      Update:    bson.M{"hash": foundHash.Hash, "nextiteration": nextIteration + 10000},
+      Update:    bson.M{"hash": foundHash.Hash, "nextiteration": nextIteration + GetConfiguration().Iterations},
       ReturnNew: true,
     }
     dao.UpdateHash(change, foundHash)

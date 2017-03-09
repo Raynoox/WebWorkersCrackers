@@ -1,19 +1,21 @@
 package main
 
 import (
+	"WebWorkersCrackers/dao"
+	"WebWorkersCrackers/model"
+	"WebWorkersCrackers/service"
 	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/gorilla/mux"
 	"log"
 	"net/http"
-	"WebWorkersCrackers/dao"
-	"WebWorkersCrackers/model"
-	"WebWorkersCrackers/service"
-)
 
+	"github.com/gorilla/mux"
+)
+var conf service.Configuration
 func main() {
+	service.SetConfiguration()
 	var dir string
 	flag.StringVar(&dir, "dir", "/build/", "the directory to serve files from. Defaults to the current dir")
 	flag.Parse()
@@ -27,6 +29,7 @@ func main() {
 	router.PathPrefix("/build/").Handler(http.StripPrefix("/build/", ServeFile(dir)))
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
+
 
 //RegisterFinishedSequence registers finish of sequence
 //needs Hash, IterationStart, IsSuccess, Result in body params
@@ -55,7 +58,7 @@ func GetHashToCrack(w http.ResponseWriter, req *http.Request) {
 	var result model.StartInfo
 
 	result.StartHash = service.GetHashToCrack(t.Hash)
-	result.Iterations = 10000
+	result.Iterations = service.GetConfiguration().Iterations
 	result.Algorithm = "MD5"
 	b := new(bytes.Buffer)
 	json.NewEncoder(b).Encode(result)
