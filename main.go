@@ -1,7 +1,6 @@
 package main
 
 import (
-<<<<<<< HEAD
 	"WebWorkersCrackers/dao"
 	"WebWorkersCrackers/model"
 	"WebWorkersCrackers/service"
@@ -11,25 +10,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-=======
-  "bytes"
-  "encoding/json"
-  "flag"
-  "fmt"
-  "github.com/gorilla/mux"
-  "log"
-  "net/http"
-  "WebWorkersCrackers/dao"
-  "WebWorkersCrackers/model"
-  "WebWorkersCrackers/service"
-)
->>>>>>> 16dc3f55aaba43e54973d7972486ef9c24412c41
 
 	"github.com/gorilla/mux"
 )
-var conf service.Configuration
 func main() {
-<<<<<<< HEAD
 	service.SetConfiguration()
 	var dir string
 	flag.StringVar(&dir, "dir", "/build/", "the directory to serve files from. Defaults to the current dir")
@@ -43,20 +27,6 @@ func main() {
 	router.HandleFunc("/finish/", RegisterFinishedSequence)
 	router.PathPrefix("/build/").Handler(http.StripPrefix("/build/", ServeFile(dir)))
 	log.Fatal(http.ListenAndServe(":8080", router))
-=======
-  var dir string
-  flag.StringVar(&dir, "dir", "/build/", "the directory to serve files from. Defaults to the current dir")
-  flag.Parse()
-  router := mux.NewRouter().StrictSlash(true)
-  router.PathPrefix("/build").Handler(http.StripPrefix("/build", http.FileServer(http.Dir("build/"))))
-  router.HandleFunc("/", Index)
-  router.HandleFunc("/hash/", NewHash)
-  router.HandleFunc("/hashlist", HashList)
-  router.HandleFunc("/crack/", GetHashToCrack)
-  router.HandleFunc("/finish/", RegisterFinishedSequence)
-  router.PathPrefix("/build/").Handler(http.StripPrefix("/build/", ServeFile(dir)))
-  log.Fatal(http.ListenAndServe(":8080", router))
->>>>>>> 16dc3f55aaba43e54973d7972486ef9c24412c41
 }
 
 
@@ -86,21 +56,13 @@ func GetHashToCrack(w http.ResponseWriter, req *http.Request) {
   defer req.Body.Close()
   var result model.StartInfo
 
-<<<<<<< HEAD
 	result.StartHash = service.GetHashToCrack(t.Hash)
 	result.Iterations = service.GetConfiguration().Iterations
 	result.Algorithm = "MD5"
 	b := new(bytes.Buffer)
 	json.NewEncoder(b).Encode(result)
 	fmt.Fprintln(w, b)
-=======
-  result.StartHash = service.GetHashToCrack(t.Hash)
-  result.Iterations = 10000
-  result.Algorithm = "MD5"
-  b := new(bytes.Buffer)
-  json.NewEncoder(b).Encode(result)
-  fmt.Fprintln(w, b)
->>>>>>> 16dc3f55aaba43e54973d7972486ef9c24412c41
+
 }
 
 //HashList action for displaying list of hash
