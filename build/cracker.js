@@ -1,10 +1,28 @@
+var getPassphraseFromIteration = function(iteration) {
+  var result = alphabeth[iteration%alphabeth.length];
+  var array = [iteration%alphabeth.length];
+  iteration=Math.floor(iteration/alphabeth.length);
+  while(iteration > 0) {
+    result=alphabeth[iteration%alphabeth.length]+result;
+    array.unshift(iteration%alphabeth.length);
+    iteration=Math.floor(iteration/alphabeth.length);
+  }
+  return {
+    passphrase: result,
+    array: array
+  };
+}
 var crackHash = function(data, window, document, component) {
   var worker = new Worker('/build/worker.js');
   //for multiple
   var i;
   var workers = [];
   var splittedData = splitData(data.StartHash, data.Iterations, data.numberOfWorkers);
+console.log(splittedData);
+  console.log(getPassphraseFromIteration(data.StartHash).passphrase+"->"+getPassphraseFromIteration(data.StartHash+data.Iterations).passphrase);
   for(i = 0;i<data.numberOfWorkers;i++) {
+    console.log(splittedData[i].StartHash+"->"+splittedData[i].Iterations+splittedData[i].StartHash+" | "+getPassphraseFromIteration(splittedData[i].StartHash).passphrase+"->"+getPassphraseFromIteration(splittedData[i].StartHash+splittedData[i].Iterations).passphrase);
+
     worker.addEventListener('message', function(e) {
       console.log("msg");
       if(e.data.finished.result) {
@@ -80,3 +98,4 @@ var checkIfDidntFind = function(workers) {
   }
   return true;
 }
+var alphabeth = "abcdefghijklmnopqrstuvwxyz";

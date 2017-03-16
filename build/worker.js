@@ -2,6 +2,7 @@
   importScripts('/build/core-min.js');
   importScripts('/build/md5-min.js');
   importScripts('/build/sha1-min.js');
+  importScripts('/build/cracker.js');
 s.addEventListener('message', function(e) {
   var options = {
     hashSearch: e.data.Hash,
@@ -10,24 +11,10 @@ s.addEventListener('message', function(e) {
     algorithm: e.data.Algorithm,
     workerIndex: e.data.index
   }
-  var alphabeth = "abcdefghijklmnopqrstuvwxyz";
   var salt = "";
   var hash = options.algorithm === "MD5" ? CryptoJS.MD5 : CryptoJS.SHA1;
 
-  var getPassphraseFromIteration = function(iteration) {
-    var result = alphabeth[iteration%alphabeth.length];
-    var array = [iteration%alphabeth.length];
-    iteration=iteration/alphabeth.length;
-    while(iteration > 0) {
-      result=alphabeth[iteration%alphabeth.length]+result;
-      array.unshift(iteration%alphabeth.length);
-      iteration=Math.floor(iteration/alphabeth.length);
-    }
-    return {
-      passphrase: result,
-      array: array
-    };
-  }
+
   var updateMain = function(iteration) {
 
   }

@@ -14,7 +14,10 @@ import (
 	"github.com/gorilla/mux"
 )
 func main() {
+	fmt.Println("START getting configuration")
 	service.SetConfiguration()
+	fmt.Println(service.GetConfiguration().Iterations)
+	fmt.Println("END getting configuration")
 	var dir string
 	flag.StringVar(&dir, "dir", "/build/", "the directory to serve files from. Defaults to the current dir")
 	flag.Parse()
