@@ -56,8 +56,17 @@ s.addEventListener('message', function(e) {
   var passphrase = obj.passphrase;
   var indexArray = obj.array;
   var res;
-  for(i = options.iteration; i<options.numberOfOperations;i++) {
+  for(i = options.iteration; i<(options.numberOfOperations+options.iteration);i++) {
     res = hash(passphrase,salt).toString();
+    if(i > 1000000 && i%100000 === 0) {
+      debugger;
+    }
+    if(i > 5176670 && i < 5176680) {
+      debugger;
+    }
+    if(passphrase === 'linux') {
+      debugger;
+    }
     if(res === options.hashSearch) {
       s.postMessage({
         finished: {

@@ -7,7 +7,7 @@ var NewHash = React.createClass({displayName: "NewHash",
     };
   },
   onSendClick: function() {
-    sendRequestJson('post','/hash/',{Hash:this.state.inputValue},this.successCallback);
+    sendRequestJson('post','/hashes',{Hash:this.state.inputValue},this.successCallback);
   },
   successCallback: function() {
     console.log("success");

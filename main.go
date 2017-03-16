@@ -1,37 +1,53 @@
 package main
 
 import (
-	"WebWorkersCrackers/dao"
-	"WebWorkersCrackers/model"
-	"WebWorkersCrackers/service"
-	"bytes"
-	"encoding/json"
-	"flag"
-	"fmt"
-	"log"
-	"net/http"
+  "WebWorkersCrackers/dao"
+  "WebWorkersCrackers/model"
+  "WebWorkersCrackers/service"
+  "bytes"
+  "encoding/json"
+  "flag"
+  "fmt"
+  "log"
+  "net/http"
 
-	"github.com/gorilla/mux"
+  "github.com/gorilla/mux"
 )
 func main() {
-	fmt.Println("START getting configuration")
-	service.SetConfiguration()
-	fmt.Println(service.GetConfiguration().Iterations)
-	fmt.Println("END getting configuration")
-	var dir string
-	flag.StringVar(&dir, "dir", "/build/", "the directory to serve files from. Defaults to the current dir")
-	flag.Parse()
-	router := mux.NewRouter().StrictSlash(true)
-	router.PathPrefix("/build").Handler(http.StripPrefix("/build", http.FileServer(http.Dir("build/"))))
-	router.HandleFunc("/", Index)
-	router.HandleFunc("/hash/", NewHash)
-	router.HandleFunc("/hashlist", HashList)
-	router.HandleFunc("/crack/", GetHashToCrack)
-	router.HandleFunc("/finish/", RegisterFinishedSequence)
-	router.PathPrefix("/build/").Handler(http.StripPrefix("/build/", ServeFile(dir)))
-	log.Fatal(http.ListenAndServe(":8080", router))
+  fmt.Println("START getting configuration")
+  service.SetConfiguration()
+  fmt.Println(service.GetConfiguration().Iterations)
+  fmt.Println("END getting configuration")
+  var dir string
+  flag.StringVar(&dir, "dir", "/build/", "the directory to serve files from. Defaults to the current dir")
+  flag.Parse()
+  router := mux.NewRouter().StrictSlash(true)
+  router.PathPrefix("/build").Handler(http.StripPrefix("/build", http.FileServer(http.Dir("build/"))))
+  router.HandleFunc("/", Index)
+  router.HandleFunc("/hash/", NewHash)
+  router.HandleFunc("/hashes", HashList).Methods("GET")
+  router.HandleFunc("/crack/", GetHashToCrack)
+  router.HandleFunc("/finish/", RegisterFinishedSequence)
+  router.HandleFunc("/hashes", NewHash).Methods("POST")
+  router.HandleFunc("/hashes/{id}", UpdateHash).Methods("PUT")
+  router.HandleFunc("/hashes/{id}", DeleteHash).Methods("DELETE")
+  router.HandleFunc("/hashes/{id}", GetHashInfo).Methods("GET")
+  router.PathPrefix("/build/").Handler(http.StripPrefix("/build/", ServeFile(dir)))
+  log.Fatal(http.ListenAndServe(":8080", router))
 }
 
+func DeleteHash(w http.ResponseWriter, req *http.Request) {
+
+}
+func UpdateHash(w http.ResponseWriter, req *http.Request) {
+
+}
+//GetHashInfo returns information about hash
+func GetHashInfo(w http.ResponseWriter, req *http.Request) {
+  vars := mux.Vars(req)
+  id := vars["id"]
+  fmt.Println(id)
+}
 
 //RegisterFinishedSequence registers finish of sequence
 //needs Hash, IterationStart, IsSuccess, Result in body params
@@ -59,12 +75,12 @@ func GetHashToCrack(w http.ResponseWriter, req *http.Request) {
   defer req.Body.Close()
   var result model.StartInfo
 
-	result.StartHash = service.GetHashToCrack(t.Hash)
-	result.Iterations = service.GetConfiguration().Iterations
-	result.Algorithm = "MD5"
-	b := new(bytes.Buffer)
-	json.NewEncoder(b).Encode(result)
-	fmt.Fprintln(w, b)
+  result.StartHash = service.GetHashToCrack(t.Hash)
+  result.Iterations = service.GetConfiguration().Iterations
+  result.Algorithm = "MD5"
+  b := new(bytes.Buffer)
+  json.NewEncoder(b).Encode(result)
+  fmt.Fprintln(w, b)
 
 }
 

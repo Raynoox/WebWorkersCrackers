@@ -2,20 +2,19 @@ var Hashes = React.createClass({
   propTypes: {},
 
   componentWillMount: function() {
-    sendRequestJson('get','hashlist',null,this.successCallback);
+    sendRequestJson('get','hashes',null,this.successCallback);
   },
   successCallback: function(response) {
     this.setState({
       hashes: response
     })
-    console.log(response);
   },
   render: function() {
     return (
       <div>
         {this.renderNewHash()}
         <div className="hashTable">tabela
-        {this.state !== null && this.state.hashes !== undefined ? this.renderHashes(): null}
+        {this.state !== null && this.state.hashes !== null && this.state.hashes !== undefined ? this.renderHashes(): null}
         </div>
       </div>
     )

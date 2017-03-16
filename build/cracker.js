@@ -21,7 +21,7 @@ var crackHash = function(data, window, document, component) {
 console.log(splittedData);
   console.log(getPassphraseFromIteration(data.StartHash).passphrase+"->"+getPassphraseFromIteration(data.StartHash+data.Iterations).passphrase);
   for(i = 0;i<data.numberOfWorkers;i++) {
-    console.log(splittedData[i].StartHash+"->"+splittedData[i].Iterations+splittedData[i].StartHash+" | "+getPassphraseFromIteration(splittedData[i].StartHash).passphrase+"->"+getPassphraseFromIteration(splittedData[i].StartHash+splittedData[i].Iterations).passphrase);
+    console.log(splittedData[i].StartHash+"->"+(splittedData[i].Iterations+splittedData[i].StartHash)+" | "+getPassphraseFromIteration(splittedData[i].StartHash).passphrase+"->"+getPassphraseFromIteration(splittedData[i].StartHash+splittedData[i].Iterations).passphrase);
 
     worker.addEventListener('message', function(e) {
       console.log("msg");
