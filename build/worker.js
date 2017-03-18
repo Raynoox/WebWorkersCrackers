@@ -11,12 +11,28 @@ s.addEventListener('message', function(e) {
     algorithm: e.data.Algorithm,
     workerIndex: e.data.index
   }
+  console.log(options.workerIndex);
   var salt = "";
   var hash = options.algorithm === "MD5" ? CryptoJS.MD5 : CryptoJS.SHA1;
-
-
+  var startTime = Date.now();
+  var refreshRate = 10;
+  var refreshTime = startTime;
   var updateMain = function(iteration) {
-
+    var now = Date.now();
+    if(now/1000 - refreshTime/1000 > 1/refreshRate) {
+      s.postMessage({
+        finished: {
+          now: now,
+          refreshTime: refreshTime,
+          result: false,
+          hashPerSecond: (iteration-options.iteration)/((now-startTime)/1000),
+          iterationsCompleted: iteration - options.iteration,
+          workerIndex: options.workerIndex,
+          iteration: iteration
+        }
+      });
+      refreshTime = now;
+    }
   }
   var getPassphraseFromArray = function(array) {
     var i;
@@ -58,12 +74,9 @@ s.addEventListener('message', function(e) {
   var res;
   for(i = options.iteration; i<(options.numberOfOperations+options.iteration);i++) {
     res = hash(passphrase,salt).toString();
-    if(i > 1000000 && i%100000 === 0) {
-      debugger;
-    }
-    if(i > 5176670 && i < 5176680) {
-      debugger;
-    }
+  //  if(i > 1000000 && i%100000 === 0) {
+    //  debugger;
+  //  }
     if(passphrase === 'linux') {
       debugger;
     }

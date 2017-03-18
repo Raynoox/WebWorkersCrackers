@@ -3,6 +3,7 @@ var HashInfo = React.createClass({displayName: "HashInfo",
     id: React.PropTypes.string.isRequired,
     hash: React.PropTypes.string.isRequired
   },
+  numberOfWorkers: 8,
   canStop: true,
   getInitialState: function() {
     return {
@@ -13,14 +14,15 @@ var HashInfo = React.createClass({displayName: "HashInfo",
       isCracking: false
     };
   },
-  componentWillUpdate: function () {
-    if(this.canStop && this.state.result) {
-      this.stopCracking();
+  componentWillUpdate: function (nextProps, nextState) {
+    if(this.canStop && nextState.result) {
+      this.stopCracking(nextState);
     }
   },
   startCracking: function() {
     this.canStop = true;
     this.setState({
+      renderWorkers: true,
       result: false
     });
     sendRequestJson("post","/crack/",{ID: this.props.id, Hash: this.props.hash},this.successStartCallback)
@@ -42,7 +44,7 @@ var HashInfo = React.createClass({displayName: "HashInfo",
       StartHash: response.StartHash,
       Iterations: response.Iterations,
       Algorithm: response.Algorithm,
-      numberOfWorkers: 2},
+      numberOfWorkers: this.numberOfWorkers},
     window,
     document,
     this);
@@ -54,22 +56,23 @@ var HashInfo = React.createClass({displayName: "HashInfo",
         StartHash: response.StartHash,
         Iterations: response.Iterations,
         Algorithm: response.Algorithm
-      }
+      },
+      numberOfWorkers: this.numberOfWorkers,
     });
   },
-  stopCracking: function() {
+  stopCracking: function(nextState) {
     this.canStop = false;
     this.setState({
       result: false
     });
-    var sucCallback = this.state.crackResult.passphrase === null ? this.startCracking : null;
+    var sucCallback = nextState.crackResult.passphrase === null ? this.startCracking : null;
     sendRequestJson("post","/finish/",
     {
-      Result: this.state.crackResult.passphrase,
-      IsSuccess: this.state.crackResult.passphrase !== null,
-      IterationStart: this.state.startInfo.StartHash,
-      Iterations: this.state.startInfo.Iterations,
-      Algorithm: this.state.startInfo.Algorithm,
+      Result: nextState.crackResult.passphrase,
+      IsSuccess: nextState.crackResult.passphrase !== null,
+      IterationStart: nextState.startInfo.StartHash,
+      Iterations: nextState.startInfo.Iterations,
+      Algorithm: nextState.startInfo.Algorithm,
       Hash: this.props.hash
     }, sucCallback)
   },
@@ -78,7 +81,8 @@ var HashInfo = React.createClass({displayName: "HashInfo",
       React.createElement("div", {className: "hashInfo"}, 
         "id=", this.props.id, 
         "hash=", this.props.hash, 
-        this.renderStartCracking()
+        this.renderStartCracking(), 
+        this.state.renderWorkers === true && this.state.numberOfWorkers > -1 ? this.renderWorkers(): null
       )
     );
   },
@@ -92,18 +96,23 @@ var HashInfo = React.createClass({displayName: "HashInfo",
     )
   },
   renderWorkers: function() {
+    var i;
+    var workers = [];
+    for(i = 0; i<this.state.numberOfWorkers;i++) {
+      workers.push(this.renderSingleWorker(i));
+    }
     return (
       React.createElement("div", null, 
-        this.state.workers.map((worker, i) => {
-          return(
-            React.createElement("div", null, 
-              "id= ", worker.id, 
-              "startHash = ", worker.startHash, 
-              "noi = ", worker.numberOfOperations
-            )
-          )
-        })
+        workers
       )
     );
+  },
+  renderSingleWorker: function(i) {
+    var workerId = this.props.hash +"#worker#"+ i.toString();
+    return (React.createElement("div", {key: i}, 
+      "Worker: ", i, "---", 
+      React.createElement("span", {style: {'display': 'inline-block'}, id: workerId}), 
+      React.createElement("span", null, "h/s")
+    ));
   }
-})
+});

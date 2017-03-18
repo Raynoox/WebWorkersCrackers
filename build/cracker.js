@@ -13,22 +13,23 @@ var getPassphraseFromIteration = function(iteration) {
   };
 }
 var crackHash = function(data, window, document, component) {
-  var worker = new Worker('/build/worker.js');
+
   //for multiple
   var i;
   var workers = [];
   var splittedData = splitData(data.StartHash, data.Iterations, data.numberOfWorkers);
-console.log(splittedData);
-  console.log(getPassphraseFromIteration(data.StartHash).passphrase+"->"+getPassphraseFromIteration(data.StartHash+data.Iterations).passphrase);
+//console.log(splittedData);
+  //console.log(getPassphraseFromIteration(data.StartHash).passphrase+"->"+getPassphraseFromIteration(data.StartHash+data.Iterations).passphrase);
   for(i = 0;i<data.numberOfWorkers;i++) {
-    console.log(splittedData[i].StartHash+"->"+(splittedData[i].Iterations+splittedData[i].StartHash)+" | "+getPassphraseFromIteration(splittedData[i].StartHash).passphrase+"->"+getPassphraseFromIteration(splittedData[i].StartHash+splittedData[i].Iterations).passphrase);
-
+    //console.log(splittedData[i].StartHash+"->"+(splittedData[i].Iterations+splittedData[i].StartHash)+" | "+getPassphraseFromIteration(splittedData[i].StartHash).passphrase+"->"+getPassphraseFromIteration(splittedData[i].StartHash+splittedData[i].Iterations).passphrase);
+    var worker = new Worker('/build/worker.js');
     worker.addEventListener('message', function(e) {
-      console.log("msg");
+  //    console.log("msg");
       if(e.data.finished.result) {
-        console.log('FINISHED');
+      //  console.log('FINISHED');
         workers[e.data.finished.workerIndex].finished = true;
         if(e.data.finished.passphrase !== undefined) {
+
           component.setState({
             result: true,
             crackResult: {
@@ -40,7 +41,11 @@ console.log(splittedData);
           sendRequestJson("post","/finished/",e.data.finished);
         } else {
           if(checkIfDidntFind(workers)) {
-            component.setState({
+            workers.forEach(function(w) {
+                      // Worker.terminate() to interrupt the web worker
+                      w.worker.terminate();
+                    });
+component.setState({
               result: true,
               crackResult: {
                 result: true,
@@ -50,27 +55,33 @@ console.log(splittedData);
             });
           }
         }
-        console.log(e.data);
         //sendRequestJson('post','/finish/')
       } else {
+      //  console.log("Worker id: "+e.data.finished.workerIndex+ " | H/S: "+e.data.finished.hashPerSecond+" now: "+e.data.finished.now+" refreshTime: "+e.data.finished.refreshTime);
+        var monitor = document.getElementById(data.Hash+'#worker#'+e.data.finished.workerIndex);
+        monitor.innerText = getPassphraseFromIteration(e.data.finished.iteration).passphrase+"\t"+Math.floor(e.data.finished.hashPerSecond);
         //calculate MHS
       }
     })
     //var hash = options.algorithm === "MD5" ? CryptoJS.MD5 : CryptoJS.SHA1;
-    component.startWorker(i, {
+  /*  component.startWorker(i, {
       StartHash: splittedData[i].StartHash,
       numberOfOperations: splittedData[i].Iterations
-    });
-    worker.postMessage({
+    });*/
+  //  console.log("workers length = "+ workers.length);
+    workers.push({
+      worker: worker,
+      finished: false});
+  }
+  for(i=0;i<workers.length;i++) {
+  //  console.log("start worker - "+i);
+    workers[i].worker.postMessage({
       Hash: data.Hash,
       StartHash: splittedData[i].StartHash,
       Iterations: splittedData[i].Iterations,
       Algorithm: data.Algorithm,
       index: i
     });
-    workers.push({
-      worker: worker,
-      finished: false});
   }
 }
 var splitData = function(start, iterations, numberOfWorkers) {
