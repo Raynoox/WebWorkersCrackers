@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"os"
 )
-
+//Configuration is configuration struct
 type Configuration struct {
 	Iterations int
+	Types []string
 }
 var configuration Configuration
+//SetConfiguration opens application.conf file and sets configuration
 func SetConfiguration() {
   fmt.Println("opening file")
 	if _, err2 := os.Stat("application.conf"); os.IsNotExist(err2) {

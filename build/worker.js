@@ -13,7 +13,8 @@ s.addEventListener('message', function(e) {
   }
   console.log(options.workerIndex);
   var salt = "";
-  var hash = options.algorithm === "MD5" ? CryptoJS.MD5 : CryptoJS.SHA1;
+  var hash = options.algorithm === "md-5" ? CryptoJS.MD5 : CryptoJS.SHA1;
+  console.log(options);
   var startTime = Date.now();
   var refreshRate = 10;
   var refreshTime = startTime;
@@ -72,15 +73,51 @@ s.addEventListener('message', function(e) {
   var passphrase = obj.passphrase;
   var indexArray = obj.array;
   var res;
+  console.log(options.iteration);
+  console.log(options.numberOfOperations);
   for(i = options.iteration; i<(options.numberOfOperations+options.iteration);i++) {
+    if(i >= 475000 && i+options.numberOfOperations < 476086) {
+      console.log(passphrase);
+      ;
+      console.log("x");
+      ;
+      console.log("x");
+      ;
+      console.log("x");
+      ;
+      console.log("x");
+      ;
+      console.log("x");
+    }
     res = hash(passphrase,salt).toString();
+    if(i%10000 === 0 ) {
+      console.log(passphrase);
+      console.log(res);
+    }
+    if(passphrase === 'bcdh') {
+      console.log(res);
+      console.log(options.hashSearch);
+      console.log("x");
+      console.log("x");
+      console.log("x");
+      console.log("x");
+      console.log("x");
+    }
   //  if(i > 1000000 && i%100000 === 0) {
     //  debugger;
   //  }
     if(passphrase === 'linux') {
-      debugger;
+      //debugger;
     }
     if(res === options.hashSearch) {
+      console.log("ha")
+      console.log("ha")
+      console.log("ha")
+      console.log("ha")
+      console.log("ha")
+      console.log("ha")
+      console.log("ha")
+
       s.postMessage({
         finished: {
           result: true,

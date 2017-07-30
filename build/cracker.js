@@ -1,10 +1,21 @@
 var getPassphraseFromIteration = function(iteration) {
   var result = alphabeth[iteration%alphabeth.length];
   var array = [iteration%alphabeth.length];
+  var minus = false;
+
+  if(iteration >=alphabeth.length && iteration <= (alphabeth.length+1)*(alphabeth.length+1)){
+    minus = true;
+  }
   iteration=Math.floor(iteration/alphabeth.length);
   while(iteration > 0) {
+    if(minus) {
+      iteration--;
+    }
     result=alphabeth[iteration%alphabeth.length]+result;
     array.unshift(iteration%alphabeth.length);
+    if(iteration >=alphabeth.length && iteration <= (alphabeth.length+1)*alphabeth.length){
+      minus = true;
+    }
     iteration=Math.floor(iteration/alphabeth.length);
   }
   return {
@@ -38,7 +49,6 @@ var crackHash = function(data, window, document, component) {
               StartHash: data.StartHash
             }
           })
-          sendRequestJson("post","/finished/",e.data.finished);
         } else {
           if(checkIfDidntFind(workers)) {
             workers.forEach(function(w) {

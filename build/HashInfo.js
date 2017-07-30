@@ -3,7 +3,7 @@ var HashInfo = React.createClass({displayName: "HashInfo",
     id: React.PropTypes.string.isRequired,
     hash: React.PropTypes.string.isRequired
   },
-  numberOfWorkers: 8,
+  numberOfWorkers: 4,
   canStop: true,
   getInitialState: function() {
     return {
@@ -25,7 +25,7 @@ var HashInfo = React.createClass({displayName: "HashInfo",
       renderWorkers: true,
       result: false
     });
-    sendRequestJson("post","/crack/",{ID: this.props.id, Hash: this.props.hash},this.successStartCallback)
+    sendRequestJson("post","/pool/"+this.props.type+"/"+this.props.id,{ID: this.props.id, Hash: this.props.hash},this.successStartCallback, this.failureCallback)
   },
   startWorker(i, data) {
     var workers = this.state.workers;
@@ -65,8 +65,11 @@ var HashInfo = React.createClass({displayName: "HashInfo",
     this.setState({
       result: false
     });
-    var sucCallback = nextState.crackResult.passphrase === null ? this.startCracking : null;
-    sendRequestJson("post","/finish/",
+    if(nextState.crackResult === undefined){
+      return;
+      }
+    var sucCallback = nextState.crackResult === undefined || nextState.crackResult.passphrase === null ? this.startCracking : this.foundHashCallback;
+    sendRequestJson("post","/pool/"+this.props.type+"/"+this.props.id+"/"+nextState.crackResult.StartHash,
     {
       Result: nextState.crackResult.passphrase,
       IsSuccess: nextState.crackResult.passphrase !== null,
@@ -76,15 +79,138 @@ var HashInfo = React.createClass({displayName: "HashInfo",
       Hash: this.props.hash
     }, sucCallback)
   },
+  foundHashCallback: function(response) {
+    this.setState({
+      renderWorkers: false,
+      showMore: false
+    });
+  },
+  fetchMoreCallback: function(response) {
+    this.setState({
+      showMore: true,
+      finished: response.IsFinished,
+      iterationsCompleted: response.Next,
+      decoded: response.Decoded,
+      etag: response.etag
+    });
+  },
+  fetchMore: function() {
+    sendRequestJson("get","hash/"+this.props.type+"/"+this.props.id,null,this.fetchMoreCallback)
+  },
+  fetchIterations: function() {
+    sendRequestJson("get","pool/"+this.props.type+"/"+this.props.id,null,this.fetchIterationsCallback)
+  },
+  fetchIterationsCallback: function(response) {
+    this.setState({
+      showAllIterations: true,
+      iterations: response
+    })
+  },
+  deleteHash: function() {
+    sendRequestJson("delete","hash/"+this.props.type+"/"+this.props.id, null, this.successDeleteCallback,this.failureCallback)
+  },
+  tokenForEdit: function() {
+    sendRequestJson("post","token",null,this.editHash)
+  },
+  editHash: function(token) {
+    sendRequestJson("put","hash/"+this.props.type+"/"+this.props.id, {
+      etag: this.state.etag,
+      ID: this.props.id,
+      Hash: this.props.hash,
+      Type:this.props.type,
+      Next:Number(this.state.iterationsCompleted),
+      Decoded:this.state.decoded,
+      IsFinished:this.state.finished,
+	    Token:token}, this.successEditCallback, this.failureCallback);
+  },
+  failureCallback: function(response) {
+    alert(response);
+  },
+  successEditCallback: function() {
+    this.setState({
+      showMore: false
+    });
+    this.props.callback();
+  },
+  successDeleteCallback: function() {
+    this.props.callback();
+    alert("hash deleted");
+  },
+  showMore: function() {
+    if(this.state.showMore) {
+      this.setState({
+        showMore: false
+      })
+    } else{
+      this.fetchMore();
+    }
+  },
+  showIterations: function() {
+    if(this.state.showAllIterations) {
+      this.setState({
+        showAllIterations: false
+      })
+    } else {
+      this.fetchIterations();
+    }
+  },
   render: function () {
     return (
       React.createElement("div", {className: "hashInfo"}, 
-        "id=", this.props.id, 
-        "hash=", this.props.hash, 
-        this.renderStartCracking(), 
+        React.createElement("div", {className: "inner"}, 
+        /*id={this.props.id}*/
+        React.createElement("br", null), 
+        "hash=", this.props.hash
+        ), 
+        this.renderShowMore(), 
+        this.state.showMore ? this.renderMoreInfo() : null, 
+        this.state.finished !== true ? this.renderStartCracking() : null, 
         this.state.renderWorkers === true && this.state.numberOfWorkers > -1 ? this.renderWorkers(): null
       )
     );
+  },
+  changeInputIteration: function(e) {
+    this.setState({
+      iterationsCompleted: e.target.value
+    });
+  },
+  renderMoreInfo: function() {
+    return(React.createElement("div", null, 
+      "status = ", this.state.finished ? "FINISHED" : "IN PROGRESS", 
+      React.createElement("br", null), 
+      "iterations completed = ", React.createElement("input", {value: this.state.iterationsCompleted, onChange: this.changeInputIteration}), 
+      React.createElement("br", null), 
+      "decoded hash = ", !this.state.finished ? "NOT YET DECODED" : this.state.decoded, 
+      React.createElement("br", null), 
+      "etag = ", this.state.etag, 
+      this.renderEditButton(), 
+      this.renderDeleteButton(), 
+      this.renderShowIterationsButton(), 
+      this.state.showAllIterations ? this.renderIterations() : null
+    ))
+  },
+  renderEditButton: function() {
+    return (React.createElement("button", {value: "save edit", onClick: this.tokenForEdit}, "edit"));
+  },
+  renderShowMore: function() {
+      return(React.createElement("div", {className: "moreInfo"}, 
+        React.createElement("input", {type: "button", readOnly: true, value: "Show more", onClick: this.showMore})
+      ));
+  },
+  renderIterations: function() {
+    return(React.createElement("div", {className: "iterations"}, 
+      this.state.iterations !== null ? this.state.iterations.map((iter, i)  => {
+          return (
+            React.createElement("div", {key: "iterations"+i}, "iteration ", iter.IterationStarted, " started at ", iter.Timestamp)
+          );
+        }) : "no iterations available"
+    ))
+  },
+  renderShowIterationsButton: function() {
+    return(React.createElement("button", {onClick: this.showIterations}, "show iterations"));
+  },
+  renderDeleteButton: function() {
+    return (React.createElement("button", {value: "delete", onClick: this.deleteHash}, "delete"));
   },
   renderStartCracking: function() {
     var buttonText = this.state.isCracking ? "Stop!" : "Crack me";
