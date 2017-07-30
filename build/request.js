@@ -7,15 +7,14 @@ function ParseStringIfJSON(response) {
   }
 }
 
-function handleResponse(response, successCallback, failureCallback) {
-  response = ParseStringIfJSON(response);
-  //if (response.status) {
+function handleResponse(code, response, successCallback, failureCallback) {
+  if (code == 200) {
     if (successCallback) {
       successCallback(response);
     }
-//  } else if (failureCallback) {
-  //  failureCallback(response);
-//  }
+ } else if (failureCallback) {
+   failureCallback(response);
+ }
 }
 var sendRequestJson = function (method, url, params, successCallback, failureCallback) {
   const xhr = new XMLHttpRequest();
@@ -29,10 +28,18 @@ var sendRequestJson = function (method, url, params, successCallback, failureCal
       } else {
         response = xhr.response;
       }
+      response = ParseStringIfJSON(response);
       if (xhr.status === 200) {
-        handleResponse(response, successCallback, failureCallback);
+        if(xhr.getResponseHeader("etag")) {
+          response.etag = xhr.getResponseHeader("etag");
+        }
+        handleResponse(xhr.status, response, successCallback, failureCallback);
       }
-      if (xhr.status === 401) {
+      if (xhr.status === 400) {
+        handleResponse(xhr.status, response, successCallback, failureCallback);
+      }
+      if (xhr.status === 409) {
+        handleResponse(xhr.status, response, successCallback, failureCallback);
       //  ReactRouter.browserHistory.push('/Home');
       }
       if (xhr.status === 404) {
@@ -43,7 +50,9 @@ var sendRequestJson = function (method, url, params, successCallback, failureCal
 
   xhr.open(method, url, true);
   xhr.setRequestHeader("Content-Type", "application/json");
-
+  if(!!params && !!params.etag){
+    xhr.setRequestHeader("If-Match", params.etag);
+  }
   xhr.withCredentials = true;
 
   xhr.send(JSON.stringify(params));

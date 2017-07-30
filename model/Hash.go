@@ -7,9 +7,16 @@ import (
 type HashInfo struct {
   ID bson.ObjectId `bson:"_id,omitempty"`
   Hash string
-  NextIteration int
+  Type string
+  Next int
   Decoded string
   IsFinished bool
+  Token string
+}
+//Token struct
+type Token struct {
+  ID bson.ObjectId `bson:"_id,omitempty"`
+  Token string
 }
 //StartInfo struct for staring cracking
 type StartInfo struct {
@@ -33,6 +40,7 @@ type HashListStruct struct {
 //HashTable struct of hash operation in database
 type HashTable struct {
   Hash string
+  Type string
   IterationStarted int
   IterationNumber int
   Timestamp time.Time

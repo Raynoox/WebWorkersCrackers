@@ -7,10 +7,19 @@ var NewHash = React.createClass({displayName: "NewHash",
     };
   },
   onSendClick: function() {
-    sendRequestJson('post','/hash/',{Hash:this.state.inputValue},this.successCallback);
+    sendRequestJson('post','/token',null,this.onTokenCallback);
+  },
+  onTokenCallback: function(token) {
+    sendRequestJson('post','/hash'+"/"+this.props.type,{hash:this.state.inputValue, token:token},this.successCallback,this.failureCallback);
+  },
+  failureCallback: function(response) {
+    alert(response);
   },
   successCallback: function() {
-    console.log("success");
+    this.setState({
+      inputValue: ""
+    });
+    this.props.callback()
   },
   updateInputValue: function(event) {
     this.setState({

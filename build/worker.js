@@ -2,34 +2,38 @@
   importScripts('/build/core-min.js');
   importScripts('/build/md5-min.js');
   importScripts('/build/sha1-min.js');
+  importScripts('/build/cracker.js');
 s.addEventListener('message', function(e) {
-  debugger;
   var options = {
     hashSearch: e.data.Hash,
     iteration: e.data.StartHash,
     numberOfOperations: e.data.Iterations,
-    algorithm: e.data.Algorithm
+    algorithm: e.data.Algorithm,
+    workerIndex: e.data.index
   }
-  var alphabeth = "abcdefghijklmnopqrstuvwxyz";
+  console.log(options.workerIndex);
   var salt = "";
-  var hash = options.algorithm === "MD5" ? CryptoJS.MD5 : CryptoJS.SHA1;
-
-  var getPassphraseFromIteration = function(iteration) {
-    var result = alphabeth[iteration%alphabeth.length];
-    var array = [iteration%alphabeth.length];
-    iteration=iteration/alphabeth.length;
-    while(iteration > 0) {
-      result=alphabeth[iteration%alphabeth.length]+result;
-      array.unshift(iteration%alphabeth.length);
-      iteration=Math.floor(iteration/alphabeth.length);
-    }
-    return {
-      passphrase: result,
-      array: array
-    };
-  }
+  var hash = options.algorithm === "md-5" ? CryptoJS.MD5 : CryptoJS.SHA1;
+  console.log(options);
+  var startTime = Date.now();
+  var refreshRate = 10;
+  var refreshTime = startTime;
   var updateMain = function(iteration) {
-
+    var now = Date.now();
+    if(now/1000 - refreshTime/1000 > 1/refreshRate) {
+      s.postMessage({
+        finished: {
+          now: now,
+          refreshTime: refreshTime,
+          result: false,
+          hashPerSecond: (iteration-options.iteration)/((now-startTime)/1000),
+          iterationsCompleted: iteration - options.iteration,
+          workerIndex: options.workerIndex,
+          iteration: iteration
+        }
+      });
+      refreshTime = now;
+    }
   }
   var getPassphraseFromArray = function(array) {
     var i;
@@ -69,13 +73,56 @@ s.addEventListener('message', function(e) {
   var passphrase = obj.passphrase;
   var indexArray = obj.array;
   var res;
-  for(i = options.iteration; i<options.numberOfOperations;i++) {
+  console.log(options.iteration);
+  console.log(options.numberOfOperations);
+  for(i = options.iteration; i<(options.numberOfOperations+options.iteration);i++) {
+    if(i >= 475000 && i+options.numberOfOperations < 476086) {
+      console.log(passphrase);
+      ;
+      console.log("x");
+      ;
+      console.log("x");
+      ;
+      console.log("x");
+      ;
+      console.log("x");
+      ;
+      console.log("x");
+    }
     res = hash(passphrase,salt).toString();
+    if(i%10000 === 0 ) {
+      console.log(passphrase);
+      console.log(res);
+    }
+    if(passphrase === 'bcdh') {
+      console.log(res);
+      console.log(options.hashSearch);
+      console.log("x");
+      console.log("x");
+      console.log("x");
+      console.log("x");
+      console.log("x");
+    }
+  //  if(i > 1000000 && i%100000 === 0) {
+    //  debugger;
+  //  }
+    if(passphrase === 'linux') {
+      //debugger;
+    }
     if(res === options.hashSearch) {
+      console.log("ha")
+      console.log("ha")
+      console.log("ha")
+      console.log("ha")
+      console.log("ha")
+      console.log("ha")
+      console.log("ha")
+
       s.postMessage({
         finished: {
           result: true,
-          passphrase: passphrase
+          passphrase: passphrase,
+          workerIndex: options.workerIndex
         }
       });
       break;
@@ -87,9 +134,9 @@ s.addEventListener('message', function(e) {
   }
   s.postMessage({
     finished: {
-      result: false,
-      passphrase: passphrase,
-      noi: options.numberOfOperations
+      result: true,
+      noi: options.numberOfOperations,
+      workerIndex: options.workerIndex
     }
   });
 })
